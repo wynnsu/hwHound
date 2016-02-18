@@ -76,8 +76,9 @@ path=config['Directory']['Path']
 if path=='':
     path=input('Enter a target directory: ')
 path+='Week'+str(result+1)+'\\'
+    
 for link, name in list:
     with open(path+name,"wb") as f:
-        r=requests.get(url_base+link,headers=header,stream=True)
+        r=s.get(url_base+link,headers=header,stream=True)
         f.write(r.content)
     print(name+" Complete.")
