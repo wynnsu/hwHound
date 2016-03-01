@@ -3,7 +3,7 @@ Download homeworks from NPU portal
 
 Usage: 
 
-1. Specify Directory, Username, Password, Week in hwHound.ini or leave them empty. 
+1. Specify Directory (Path), Username, Password, Week, Identity and Course in hwHound.ini or leave them empty. 
 
 2. Run script in commandline.
  
