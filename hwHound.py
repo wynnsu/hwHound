@@ -19,6 +19,7 @@ s=requests.Session()
 NPU main page
 '''
 r=s.get(config['Address']['Link'],headers=header)
+print('Main page...')
 soup=BeautifulSoup(r.text,"html.parser")
 t=''
 t=config['Target']['Identity']
@@ -35,36 +36,35 @@ for link in soup.find_all('a'):
 '''
 Log-In page
 '''
+print('Log-in Page...')
 r=s.get(target,headers=header)
 url_base='https://osc.npu.edu'
 username=config[t]['Username']
 password=config[t]['Password']
-if username=='':
+if username=='' or username=='username':
     username=input('Enter username: ')
-if password=='':
+if password=='' or password=='password':
     password=getpass.getpass()
 '''
 Log-In post
 '''
 r=s.post(url_base+r.history[0].headers.get('Location'),headers=header,data={'username':username,'password':password})
+print('Log-in succeeded, hopefully...')
 '''
 Homepage
 '''
-r=s.get(config['Address'][t],headers=header)
+r=s.get(config[t]['Address'],headers=header)
 soup=BeautifulSoup(r.text,"html.parser")
 target=''
-#for link in soup.find_all('a'):
-#    if link.text=='Activities':
-#        target=link.get('href')
-#url_base='https://stuosc.npu.edu/'
 
 for tab in soup.find_all('table'):
     for row in tab.find_all('tr'):
         for col in row.find_all('td'):
-            if re.match(config['Target']['Course'],col.text):           
+            if re.match(config['Target']['Course'],col.text):
                 for link in row.find_all('a'):
-                    if link.text=='Class Activities':
+                    if link.text==config[t]['Activity']:
                         target=link.get('href')        
+print('Jump to Activities page...')
 '''
 Activities Page
 '''
@@ -73,44 +73,45 @@ r=s.get(url_base+target,headers=header)
 soup=BeautifulSoup(r.text,"html.parser")
 list=[]
 for banner in soup.find_all('b'):
-    if re.match(config['Target'][t],banner.text):
-        info=banner.text.split()[len((config['Target'][t]).split())-1:]
+    if re.match(config[t]['Prefix'],banner.text):
+        info=banner.text.split()[len((config[t]['Prefix']).split())-1:]
         list.append(info[0])
-
+        
 result=-1
 result=int(config['Target']['Week'])-1
-if result==-1:       
+if result==-1:
     for i in range(len(list)):
         print('['+str(i)+']'+' '+list[i][2])
     result=int(input('Choose homework: '))
-
+    
 No=''
 if result in range(len(list)):
     No=list[result][1:-1]
     
-
 for link in soup.find_all('a'):
     if link.text=='Grade':
         hr=link.get('href')
 
-        if re.match(config['Pattern'][t]+"/Assignment/Grade/"+No,hr):
+        if re.match(config[t]['Pattern']+"/Assignment/Grade/"+No,hr):
+            print('Homework page found, jumping...')
             '''
             Homework Page
             '''
             r=s.get(url_base+hr,headers=header)
-
-         
+                
 soup=BeautifulSoup(r.text,"html.parser")
-
 pattern=re.compile("/Home/GetFile/")
 list=[]
 for link in soup.find_all("a",{ "class" : "fancybox" }):
     if(pattern.match(link.get('href'))):
         list.append((link.get('href'),link.text))
+path=''
 path=config['Directory']['Path']
 if path=='':
-    path=input('Enter a target directory: ')
-path+='Week'+str(result+1)+'\\'
+    path='C:\\Users\\'+os.getenv('username')+'\\Documents\\'+config['Target']['Course']+'\\Week'+str(result+1)+'\\'
+print(str(len(list))+'files found...')
+print('Downloading to directory: ')
+print(path)
 if not os.path.exists(path):
     os.makedirs(path)
     
@@ -119,3 +120,4 @@ for link, name in list:
         r=s.get(url_base+link,headers=header,stream=True)
         f.write(r.content)
     print(name+" Complete.")
+print('All done.')
