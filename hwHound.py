@@ -3,6 +3,7 @@ import re
 from bs4 import BeautifulSoup
 import configparser
 import getpass
+import os
 
 config=configparser.ConfigParser()
 config.read('hwHound.ini')
@@ -110,6 +111,8 @@ path=config['Directory']['Path']
 if path=='':
     path=input('Enter a target directory: ')
 path+='Week'+str(result+1)+'\\'
+if not os.path.exists(path):
+    os.makedirs(path)
     
 for link, name in list:
     with open(path+name,"wb") as f:
