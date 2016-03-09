@@ -3,11 +3,13 @@ Download homeworks from NPU portal
 
 Usage: 
 
-1. Specify Directory (Path), Username, Password, Week, Identity and Course in hwHound.ini or leave them empty. 
+1. Specify Course Number in hwHound.ini.
 
-2. Run script in commandline.
+2. Specify Downloading Path in hwHound.ini (optional).
+
+3. Run script in commandline. (python hwHound.py)
  
-3. If not specified, follow user prompt to enter above fields.
+4. Follow prompt.
 
 e.g.
 ```
