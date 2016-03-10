@@ -23,7 +23,7 @@ r = s.get(config['Address']['Link'], headers=header)
 print('Main page...')
 soup = BeautifulSoup(r.text, "html.parser")
 
-t=input('Student[0] or Faculty[1]: ')
+t=eval(input('Student[0] or Faculty[1]: '))
 if t == 0:
     t = 'Student'
 if t == 1:
@@ -38,7 +38,7 @@ Log-In page
 print(t + ' Log-in Page')
 r = s.get(target, headers=header)
 url_base = 'https://osc.npu.edu'
-username=raw_input('Enter Username: ')
+username=input('Enter Username: ')
 password=getpass.getpass()
 '''
 Log-In post
@@ -64,18 +64,18 @@ rows = soup.table.find_all('tr')
 def grab_link(row, t):
     for link in row.find_all('a'):
         if link.text == config[t]['Activity']:
-            result = map(lambda x: x.text.strip(), row.find_all('td'))
+            result = list(map(lambda x: x.text.strip(), row.find_all('td')))
             result.append(link.get('href'))
             return result
 
-list = filter(lambda y: (y is not None), map(lambda x: grab_link(x, t), rows))
+courseList = list(filter(lambda y: (y is not None), map(lambda x: grab_link(x, t), rows)))
 
-for idx, item in enumerate(list):
+for idx, item in enumerate(courseList):
     print('[' + str(idx) + ']' + str(item[1]) + '(' + str(item[2]) + ')')
-result = input('Choose Course[0-' + str(len(list) - 1) + ']: ')
+result = eval(input('Choose Course[0-' + str(len(courseList) - 1) + ']: '))
 
-target = list[result][-1]
-course = str(list[result][1])+str(list[result][2])
+target = courseList[result][-1]
+course = str(courseList[result][1])+str(courseList[result][2])
 print('Jump to Activities page...')
 '''
 Activities Page
@@ -84,8 +84,8 @@ r = s.get(url_base + target, headers=header)
 
 soup = BeautifulSoup(r.text, "html.parser")
 
-list = filter(lambda x: re.match(
-    r'.*\#[0-9]{5}\:', x.get_text()), soup.find_all('b'))
+courseDetailList = list(filter(lambda x: re.match(
+    r'.*\#[0-9]{5}\:', x.text), soup.find_all('b')))
 
 
 def make_item(x):
@@ -93,14 +93,14 @@ def make_item(x):
     course = str(x).split('#')[1].split(':')[0]
     name = str(x).split(':')[1].split('\r')[0]
     return [number, course, name]
-list = map(lambda x: make_item(x), list)
+hwList = list(map(lambda x: make_item(x), courseDetailList))
 
-for idx, item in enumerate(list):
+for idx, item in enumerate(hwList):
     print('[' + str(idx) + '] ' + str(item[0]) + str(item[1]) + str(item[2]))
-result = input('Choose target[0-' + str(len(list) - 1) + ']: ')
+result = eval(input('Choose target[0-' + str(len(hwList) - 1) + ']: '))
 
-No = list[result][1]
-Week = list[result][2]
+No = hwList[result][1]
+Week = hwList[result][2]
 
 for link in soup.find_all('a'):
     if link.text == 'Grade':
@@ -115,19 +115,19 @@ for link in soup.find_all('a'):
 
 soup = BeautifulSoup(r.text, "html.parser")
 pattern = re.compile("/Home/GetFile/")
-list = map(lambda x: (x.get('href'), x.text), filter(lambda x: pattern.match(
-    x.get('href')), soup.find_all("a", {"class": "fancybox"})))
+fileList = list(map(lambda x: (x.get('href'), x.text), list(filter(lambda x: pattern.match(
+    x.get('href')), soup.find_all("a", {"class": "fancybox"})))))
 
 path = config['Directory']['Path']
 if not path:
-    path = 'C:\\Users\\' + os.getenv('username') + '\\Documents\\' + course + '\\' + str(week) + '\\'
-print(str(len(list)) + 'files found...')
+    path = 'C:\\Users\\' + os.getenv('username') + '\\Documents\\' + course + '\\' + str(Week.strip()) + '\\'
+print(str(len(fileList)) + 'files found...')
 print('Downloading to directory: ')
 print(path)
 if not os.path.exists(path):
     os.makedirs(path)
 
-for link, name in list:
+for link, name in fileList:
     with open(path + name, "wb") as f:
         r = s.get(url_base + link, headers=header, stream=True)
         f.write(r.content)
