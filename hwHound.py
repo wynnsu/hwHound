@@ -100,6 +100,7 @@ for idx, item in enumerate(list):
 result = input('Choose target[0-' + str(len(list) - 1) + ']: ')
 
 No = list[result][1]
+Week = list[result][2]
 
 for link in soup.find_all('a'):
     if link.text == 'Grade':
@@ -119,7 +120,7 @@ list = map(lambda x: (x.get('href'), x.text), filter(lambda x: pattern.match(
 
 path = config['Directory']['Path']
 if not path:
-    path = 'C:\\Users\\' + os.getenv('username') + '\\Documents\\' + course + '\\Week' + str(result + 1) + '\\'
+    path = 'C:\\Users\\' + os.getenv('username') + '\\Documents\\' + course + '\\' + str(week) + '\\'
 print(str(len(list)) + 'files found...')
 print('Downloading to directory: ')
 print(path)
