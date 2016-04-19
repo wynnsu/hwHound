@@ -6,6 +6,26 @@ import configparser
 import getpass
 import os
 
+
+def soupify(r):
+    return BeautifulSoup(r.text, "html.parser")
+
+
+def grab_link(row, t):
+    for link in row.find_all('a'):
+        if link.text == config[t]['Activity']:
+            result = list(map(lambda x: x.text.strip(), row.find_all('td')))
+            result.append(link.get('href'))
+            return result
+
+
+def make_item(x):
+    number = str(x).split('<b>')[1].split('#')[0]
+    course = str(x).split('#')[1].split(':')[0]
+    name = str(x).split(':')[1].split('\r')[0]
+    return [number, course, name]
+
+
 config = configparser.ConfigParser()
 config.read('hwHound.ini')
 header = {
@@ -23,9 +43,7 @@ NPU main page
 r = s.get(config['Address']['Link'], headers=header)
 print('Main page...')
 t = {0: 'Student', 1: 'Faculty'}[eval(input('Student[0] or Faculty[1]: '))]
-
-target = next(x for x in soupify(r).find_all(
-    'a') if x.text == t + ' Log-In').get('href')
+target = config['Address']['Logon']+t
 '''
 Log-In page
 '''
@@ -70,16 +88,15 @@ for idx, item in enumerate(hwList):
 result = eval(input('Choose target[0-' + str(len(hwList) - 1) + ']: '))
 No = hwList[result][1]
 Week = hwList[result][2]
-hr = next(x for x in actPage.find_all('a') if x.text == 'Grade').get('href')
-if re.match(config[t]['Pattern'] + "/Assignment/Grade/" + No, hr):
-    print('Homework page found, jumping...')
-    '''
-    Homework Page
-    '''
-    r = s.get(url_base + hr, headers=header)
-else:
-    print('Homework page missing.')
-    exit(1)
+hr =config[t]['Pattern'] + "/Assignment/Grade/" + No +'?'
+hr+= next(x for x in actPage.find_all('a') if x.text == 'Grade').get('href').split('?')[-1]
+
+print('Homework page found, jumping...')
+'''
+Homework Page
+'''
+r = s.get(url_base + hr, headers=header)
+
 boxes = soupify(r).find_all(
     "a", {"class": "fancybox"})
 fileLinks = list(filter(lambda x: re.compile(
@@ -103,21 +120,3 @@ for link, name in fileList:
         f.write(r.content)
     print(name + " Complete.")
 print('All done.')
-
-
-def soupify(r):
-    return BeautifulSoup(r.text, "html.parser")
-
-
-def grab_link(row, t):
-    for link in row.find_all('a'):
-        if link.text == config[t]['Activity']:
-            result = list(map(lambda x: x.text.strip(), row.find_all('td')))
-            return result.append(link.get('href'))
-
-
-def make_item(x):
-    number = str(x).split('<b>')[1].split('#')[0]
-    course = str(x).split('#')[1].split(':')[0]
-    name = str(x).split(':')[1].split('\r')[0]
-    return [number, course, name]
